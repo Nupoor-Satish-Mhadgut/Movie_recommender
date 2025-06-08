@@ -35,6 +35,6 @@ Thumbs.db
 # IDE project files
 .idea/
 
-# Ignore local dataset files
-credits.csv
+# Ignore large CSV files
+movies/credits.csv
 
