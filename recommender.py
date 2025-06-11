@@ -9,10 +9,12 @@ import os
 load_dotenv()
 
 # Load the datasets
-movies = pd.read_csv(r'C:\Users\user\movie_recommender\movies\movies_metadata.csv', low_memory=False)
-credits = pd.read_csv(r'C:\Users\user\movie_recommender\movies\credits.csv')
-keywords = pd.read_csv(r'C:\Users\user\movie_recommender\movies\keywords.csv')
-links_df = pd.read_csv(r'C:\Users\user\movie_recommender\movies\links.csv')
+credits_url = "https://huggingface.co/datasets/nupoorm/credits-dataset/resolve/main/credits.csv"
+movies = pd.read_csv(credits_url)
+credits = pd.read_csv(os.path.join('movies', 'credits.csv'))
+keywords = pd.read_csv(os.path.join('movies', 'keywords.csv'))
+links_df = pd.read_csv(os.path.join('movies', 'links.csv'))
+
 
 # Clean IDs
 movies['id'] = pd.to_numeric(movies['id'], errors='coerce')
