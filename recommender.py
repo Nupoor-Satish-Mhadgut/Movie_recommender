@@ -5,6 +5,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 import requests
 from dotenv import load_dotenv
 import os
+import streamlit as st
 
 load_dotenv()
 
@@ -120,7 +121,7 @@ def recommend(title, cosine_sim=cosine_sim):
 
 
 
-TMDB_API_KEY = os.getenv("TMDB_API_KEY")  # 🔁 Replace this with your actual TMDB API key
+TMDB_API_KEY = st.secrets.get("TMDB_API_KEY", os.getenv("TMDB_API_KEY"))  # 🔁 Replace this with your actual TMDB API key
 
 # def fetch_details(title):
 #     url = f"https://api.themoviedb.org/3/search/movie?api_key={TMDB_API_KEY}&query={title}"
