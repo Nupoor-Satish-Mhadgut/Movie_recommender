@@ -10,8 +10,8 @@ load_dotenv()
 
 # Load the datasets
 credits_url = "https://huggingface.co/datasets/nupoorm/credits-dataset/resolve/main/credits.csv"
-movies = pd.read_csv(credits_url)
-credits = pd.read_csv(os.path.join('movies', 'credits.csv'))
+credits = pd.read_csv(credits_url)
+movies = pd.read_csv(os.path.join('movies', 'movies_metadata.csv'))
 keywords = pd.read_csv(os.path.join('movies', 'keywords.csv'))
 links_df = pd.read_csv(os.path.join('movies', 'links.csv'))
 
