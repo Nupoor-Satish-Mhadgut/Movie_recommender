@@ -1,68 +1,48 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
-from recommender import recommend
-from dotenv import load_dotenv
-import os
+import streamlit as st
+from recommender import recommend  # Your existing recommendation function
 
-load_dotenv()
-app = Flask(__name__)
-app.secret_key = os.getenv("SECRET_KEY")  # Keep this secure
+# Page config
+st.set_page_config(
+    page_title="Movie Recommender",
+    page_icon="🎬",
+    layout="wide"
+)
 
-# Initialize feedback_store for feedback handling
-feedback_store = {}
+# Custom CSS for dark/light mode (optional)
+st.markdown("""
+    <style>
+        .stApp { background-color: #f8f9fa; }
+        .dark-mode { background-color: #121212; color: white; }
+    </style>
+""", unsafe_allow_html=True)
 
-@app.route("/", methods=["GET", "POST"])
-def home():
-    recs, posters, genres, years, trailers = [], [], [], [], []
-    if request.method == "POST":
-        movie = request.form["movie"]
-        recs, posters, genres, years, trailers = recommend(movie)
+# Sidebar for theme toggle
+with st.sidebar:
+    st.title("Settings")
+    dark_mode = st.toggle("Dark Mode", False)
 
-        # Save current recommendations in session history
-        session.setdefault('history', [])
-        # Save as a list of dicts (title + poster + genre + year + trailer)
-        for i in range(len(recs)):
-            session['history'].append({
-                'title': recs[i],
-                'poster': posters[i],
-                'genre': genres[i],
-                'year': years[i],
-                'trailer': trailers[i]
-            })
-        session.modified = True  # To tell Flask session data changed
+# Main UI
+st.title("🎬 Nupoor's Movie Recommender")
 
-    # Load history from session (if any)
-    history = session.get('history', [])
+# Input movie
+movie = st.text_input("Enter a movie title:", placeholder="The Dark Knight")
 
-    return render_template(
-        "index.html",
-        recs=recs,
-        posters=posters,
-        genres=genres,
-        years=years,
-        trailers=trailers,
-        history=history
-    )
-
-@app.route("/feedback", methods=["POST"])
-def feedback():
-    movie_title = request.form.get("movie_title")
-    user_feedback = request.form.get("feedback")  # 'like' or 'dislike'
-
-    if movie_title and user_feedback in ("like", "dislike"):
-        if movie_title not in feedback_store:
-            feedback_store[movie_title] = {"like": 0, "dislike": 0}
-        feedback_store[movie_title][user_feedback] += 1
-        flash(f"Thanks for your feedback on '{movie_title}'!", "success")
+if st.button("Recommend"):
+    if not movie:
+        st.warning("Please enter a movie title!")
     else:
-        flash("Invalid feedback submission.", "danger")
+        with st.spinner("Finding recommendations..."):
+            recs, posters, genres, years, trailers = recommend(movie)
 
-    return redirect(url_for("home"))
-
-@app.route("/clear_history")
-def clear_history():
-    session.pop('history', None)
-    flash("History cleared!", "info")
-    return redirect(url_for("home"))
-
-if __name__ == "__main__":
-    app.run(debug=True, port=5001)
+        if not recs:
+            st.error("Movie not found. Try another title!")
+        else:
+            st.success("Here are your recommendations:")
+            cols = st.columns(3)
+            for i in range(len(recs)):
+                with cols[i % 3]:
+                    st.image(posters[i], caption=recs[i], width=200)
+                    st.write(f"**Genre:** {genres[i]}")
+                    st.write(f"**Year:** {years[i]}")
+                    if trailers[i]:
+                        st.markdown(f"[▶ Watch Trailer]({trailers[i]})")
