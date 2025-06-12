@@ -1,77 +1,74 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
-from recommender import recommend  # Your recommendation logic
-import psutil
-import os
-from pathlib import Path
+import streamlit as st
+from recommender import recommend
+import time
+from PIL import Image
 
-app = Flask(__name__)
-app.secret_key = os.getenv('SECRET_KEY', 'fallback-secret-key')  # Prefer environment variable
+# Page Configuration
+st.set_page_config(
+    page_title="Nupoor Mhadgut's Movie Recommendation",
+    page_icon="🎬",
+    layout="wide"
+)
 
-# Configure persistent cache directory for Render
-# Replace the CACHE_DIR code at the top with:
-from config import CACHE_DIR
+# Load custom CSS
+def local_css(file_name):
+    with open(file_name) as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-@app.route('/memory')
-def memory_usage():
-    """Endpoint to check current memory usage"""
-    process = psutil.Process(os.getpid())
-    return {
-        'memory_usage_mb': process.memory_info().rss / 1024 / 1024,
-        'cache_dir': CACHE_DIR,
-        'cache_exists': os.path.exists(CACHE_DIR)
-    }
+local_css("style.css")
 
-@app.route("/", methods=["GET", "POST"])
-def index():
-    recs, posters, genres, years, trailers = [], [], [], [], []
-    history = request.cookies.get("history", "[]")  # Default empty JSON array
+# Header with Logo
+col1, col2 = st.columns([0.1, 0.9])
+with col1:
+    # You can replace this with your actual logo image
+    # st.image("nm_logo.png", width=40)
+    st.markdown("""
+    <div class="logo-badge">NM</div>
+    """, unsafe_allow_html=True)
     
-    if request.method == "POST":
-        movie = request.form.get("movie", "").strip()
-        if not movie:
-            flash("Please enter a movie title!", "warning")
-        else:
-            try:
-                recs, posters, genres, years, trailers = recommend(movie)
-                if not recs:
-                    flash("Movie not found. Try another title!", "danger")
-            except Exception as e:
-                flash(f"Error generating recommendations: {str(e)}", "danger")
-                app.logger.error(f"Recommendation error: {str(e)}")
-    
-    return render_template(
-        "index.html",
-        recs=recs,
-        posters=posters,
-        genres=genres,
-        years=years,
-        trailers=trailers,
-        history=history
-    )
+with col2:
+    st.title("Nupoor Mhadgut's Movie Recommender")
 
-@app.route("/feedback", methods=["POST"])
-def feedback():
-    """Handle user feedback on recommendations"""
-    movie_title = request.form.get("movie_title", "Unknown")
-    feedback_type = request.form.get("feedback", "none")
-    
-    # Here you could log feedback to a file in the persistent cache:
-    feedback_log = Path(CACHE_DIR) / "feedback.log"
-    with open(feedback_log, "a") as f:
-        f.write(f"{movie_title},{feedback_type}\n")
-    
-    flash(f"Thanks for your feedback on '{movie_title}'!", "success")
-    return redirect(url_for("index"))
+# Recommendation Engine
+movie = st.text_input("Enter a movie you like:", placeholder="The Dark Knight")
 
-@app.route("/clear")
-def clear_history():
-    """Clear user history cookie"""
-    response = redirect(url_for("index"))
-    response.set_cookie("history", "", expires=0)
-    flash("History cleared!", "info")
-    return response
-
-if __name__ == "__main__":
-    # Ensure cache directory exists before starting
-    Path(CACHE_DIR).mkdir(exist_ok=True)
-    app.run(host='0.0.0.0', port=int(os.getenv('PORT', 5000)))
+if st.button("Get Recommendations"):
+    if not movie:
+        st.warning("Please enter a movie title!")
+    else:
+        with st.spinner("Finding the best recommendations..."):
+            time.sleep(1)  # Simulate loading
+            
+            recs, posters, genres, years, trailers = recommend(movie)
+            
+            if not recs:
+                st.error("Movie not found. Try another title!")
+            else:
+                st.success("Here are your recommendations:")
+                
+                cols = st.columns(3)
+                for i in range(len(recs)):
+                    with cols[i % 3]:
+                        with st.container():
+                            st.image(
+                                posters[i] if posters[i] else "https://via.placeholder.com/300x450?text=No+Poster",
+                                width=200,
+                                caption=recs[i]
+                            )
+                            st.write(f"**{genres[i]}** | {years[i]}")
+                            
+                            if trailers[i]:
+                                st.markdown(
+                                    f'<a href="{trailers[i]}" target="_blank" class="trailer-button">▶ Watch Trailer</a>',
+                                    unsafe_allow_html=True
+                                )
+                            
+                            col1, col2 = st.columns(2)
+                            with col1:
+                                if st.button(f"👍 Like {i+1}", key=f"like_{i}"):
+                                    st.session_state[f'feedback_{i}'] = 'liked'
+                                    st.toast(f"You liked {recs[i]}!")
+                            with col2:
+                                if st.button(f"👎 Dislike {i+1}", key=f"dislike_{i}"):
+                                    st.session_state[f'feedback_{i}'] = 'disliked'
+                                    st.toast(f"You disliked {recs[i]}!")

@@ -1,0 +1,61 @@
+/* Logo Badge */
+.logo-badge {
+    width: 35px;
+    height: 35px;
+    background-color: #ffc107;
+    color: black;
+    font-weight: bold;
+    font-size: 1.1rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+    user-select: none;
+}
+
+/* Trailer Button */
+.trailer-button {
+    background-color: #0d6efd;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    text-decoration: none;
+    display: inline-block;
+    margin: 5px 0;
+    transition: all 0.3s ease;
+}
+
+.trailer-button:hover {
+    background-color: #0b5ed7;
+    color: white;
+}
+
+/* Loading Spinner Customization */
+.stSpinner > div {
+    width: 30px !important;
+    height: 30px !important;
+    border-width: 4px !important;
+}
+
+/* Movie Cards */
+.stContainer {
+    border: 1px solid #eee;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
+    transition: transform 0.2s;
+}
+
+.stContainer:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .stContainer {
+        border-color: #444;
+        background-color: #1e1e1e;
+    }
+}
