@@ -1,61 +1,146 @@
-/* Logo Badge */
+/* ===== Base Styles ===== */
+:root {
+    --primary: #ffc107;
+    --primary-hover: #e0a800;
+    --secondary: #0d6efd;
+    --secondary-hover: #0b5ed7;
+    --card-bg: #ffffff;
+    --text-color: #333333;
+    --border-color: #eeeeee;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --card-bg: #1e1e1e;
+        --text-color: #f0f0f0;
+        --border-color: #444444;
+    }
+}
+
+/* ===== Logo Badge ===== */
 .logo-badge {
-    width: 35px;
-    height: 35px;
-    background-color: #ffc107;
+    width: 40px;
+    height: 40px;
+    background-color: var(--primary);
     color: black;
     font-weight: bold;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     margin-right: 10px;
     user-select: none;
+    transition: transform 0.3s ease;
 }
 
-/* Trailer Button */
+.logo-badge:hover {
+    transform: rotate(15deg) scale(1.1);
+}
+
+/* ===== Trailer Button ===== */
 .trailer-button {
-    background-color: #0d6efd;
-    color: white;
-    padding: 5px 10px;
-    border-radius: 4px;
+    background-color: var(--secondary);
+    color: white !important;
+    padding: 8px 15px;
+    border-radius: 6px;
     text-decoration: none;
     display: inline-block;
-    margin: 5px 0;
+    margin: 8px 0;
     transition: all 0.3s ease;
+    font-weight: 500;
+    width: 100%;
+    text-align: center;
 }
 
 .trailer-button:hover {
-    background-color: #0b5ed7;
-    color: white;
+    background-color: var(--secondary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* Loading Spinner Customization */
+/* ===== Loading Spinner ===== */
 .stSpinner > div {
     width: 30px !important;
     height: 30px !important;
     border-width: 4px !important;
+    border-color: var(--primary) transparent transparent transparent !important;
 }
 
-/* Movie Cards */
+/* ===== Movie Cards ===== */
 .stContainer {
-    border: 1px solid #eee;
-    border-radius: 10px;
-    padding: 15px;
-    margin-bottom: 20px;
-    transition: transform 0.2s;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 25px;
+    transition: all 0.3s ease;
+    background-color: var(--card-bg);
+    color: var(--text-color);
 }
 
 .stContainer:hover {
     transform: translateY(-5px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
-/* Dark Mode Support */
-@media (prefers-color-scheme: dark) {
+/* ===== Feedback Buttons ===== */
+.stButton button {
+    transition: all 0.3s ease !important;
+}
+
+.stButton button:first-child {
+    background-color: #28a745 !important;
+    border-color: #28a745 !important;
+}
+
+.stButton button:first-child:hover {
+    background-color: #218838 !important;
+    transform: scale(1.05);
+}
+
+.stButton button:last-child {
+    background-color: #dc3545 !important;
+    border-color: #dc3545 !important;
+}
+
+.stButton button:last-child:hover {
+    background-color: #c82333 !important;
+    transform: scale(1.05);
+}
+
+/* ===== Responsive Adjustments ===== */
+@media (max-width: 768px) {
     .stContainer {
-        border-color: #444;
-        background-color: #1e1e1e;
+        padding: 12px;
     }
+    
+    .logo-badge {
+        width: 35px;
+        height: 35px;
+        font-size: 1rem;
+    }
+    
+    .trailer-button {
+        padding: 6px 12px;
+        font-size: 0.9rem;
+    }
+}
+
+/* ===== Toast Notifications ===== */
+.stToast {
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* ===== Input Field ===== */
+.stTextInput input {
+    border-radius: 8px !important;
+    padding: 10px 15px !important;
+    border: 2px solid var(--border-color) !important;
+    transition: all 0.3s ease !important;
+}
+
+.stTextInput input:focus {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25) !important;
 }
