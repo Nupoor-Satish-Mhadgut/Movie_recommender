@@ -8,10 +8,8 @@ app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'fallback-secret-key')  # Prefer environment variable
 
 # Configure persistent cache directory for Render
-CACHE_DIR = "/opt/render/.cache"
-if not os.path.exists(CACHE_DIR):
-    os.makedirs(CACHE_DIR, exist_ok=True)
-    print(f"Created persistent cache directory at {CACHE_DIR}")
+# Replace the CACHE_DIR code at the top with:
+from config import CACHE_DIR
 
 @app.route('/memory')
 def memory_usage():

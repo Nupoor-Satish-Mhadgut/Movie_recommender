@@ -11,7 +11,7 @@ from joblib import dump, load
 
 load_dotenv()
 
-from app import CACHE_DIR  # Import the shared cache directory
+from config import CACHE_DIR # Import the shared cache directory
 cache_file = os.path.join(CACHE_DIR, 'similarity.joblib')
 
 # --- Memory Optimized Data Loading ---
