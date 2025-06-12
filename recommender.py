@@ -69,7 +69,7 @@ movies['soup'] = movies['overview'] + ' ' + \
                  movies['cast'].apply(lambda x: ' '.join(x)) + ' ' + \
                  movies['crew'].apply(lambda x: ' '.join(x))
 
-movies = movies.head(5000)
+movies = movies.head(2000)
 
 # Vectorize the soup
 count = CountVectorizer(stop_words='english')
