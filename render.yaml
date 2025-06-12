@@ -3,7 +3,8 @@ services:
     name: movie-recommender-flask
     runtime: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app
+      mkdir -p /opt/render/.cache
+    startCommand: "gunicorn --workers 1 --threads 2 app:app"
     envVars:
       - key: TMDB_API_KEY
         sync: false
