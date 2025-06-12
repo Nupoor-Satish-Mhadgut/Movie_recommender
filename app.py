@@ -1,8 +1,16 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 from recommender import recommend  # Your recommendation logic
+import psutil
+import os
+
 
 app = Flask(__name__)
 app.secret_key = '3f1e2b9d8c4f7a6e5b3d0c1f9a2e8b7'  # You can use an environment variable here for security
+
+@app.route('/memory')
+def memory_usage():
+    process = psutil.Process(os.getpid())
+    return f"Memory usage: {process.memory_info().rss / 1024 / 1024:.2f} MB"
 
 @app.route("/", methods=["GET", "POST"])
 def index():
