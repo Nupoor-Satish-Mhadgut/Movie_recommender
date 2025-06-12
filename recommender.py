@@ -17,7 +17,7 @@ def load_and_filter_data():
         os.path.join('movies', 'movies_metadata.csv'),
         low_memory=False,
         usecols=['id', 'title', 'overview', 'genres']
-    ).head(3000)
+    ).head(2000)
     
     # Load and merge other datasets
     credits = pd.read_csv(
