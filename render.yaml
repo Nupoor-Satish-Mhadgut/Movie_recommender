@@ -9,3 +9,5 @@ services:
         sync: false
       - key: SECRET_KEY
         sync: false
+      - key: CACHE_DIR
+        value: /opt/render/.cache

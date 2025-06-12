@@ -2,29 +2,44 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 from recommender import recommend  # Your recommendation logic
 import psutil
 import os
-
+from pathlib import Path
 
 app = Flask(__name__)
-app.secret_key = '3f1e2b9d8c4f7a6e5b3d0c1f9a2e8b7'  # You can use an environment variable here for security
+app.secret_key = os.getenv('SECRET_KEY', 'fallback-secret-key')  # Prefer environment variable
+
+# Configure persistent cache directory for Render
+CACHE_DIR = "/opt/render/.cache"
+if not os.path.exists(CACHE_DIR):
+    os.makedirs(CACHE_DIR, exist_ok=True)
+    print(f"Created persistent cache directory at {CACHE_DIR}")
 
 @app.route('/memory')
 def memory_usage():
+    """Endpoint to check current memory usage"""
     process = psutil.Process(os.getpid())
-    return f"Memory usage: {process.memory_info().rss / 1024 / 1024:.2f} MB"
+    return {
+        'memory_usage_mb': process.memory_info().rss / 1024 / 1024,
+        'cache_dir': CACHE_DIR,
+        'cache_exists': os.path.exists(CACHE_DIR)
+    }
 
 @app.route("/", methods=["GET", "POST"])
 def index():
     recs, posters, genres, years, trailers = [], [], [], [], []
-    history = request.cookies.get("history")  # Optional history feature
+    history = request.cookies.get("history", "[]")  # Default empty JSON array
     
     if request.method == "POST":
-        movie = request.form.get("movie")
+        movie = request.form.get("movie", "").strip()
         if not movie:
             flash("Please enter a movie title!", "warning")
         else:
-            recs, posters, genres, years, trailers = recommend(movie)
-            if not recs:
-                flash("Movie not found. Try another title!", "danger")
+            try:
+                recs, posters, genres, years, trailers = recommend(movie)
+                if not recs:
+                    flash("Movie not found. Try another title!", "danger")
+            except Exception as e:
+                flash(f"Error generating recommendations: {str(e)}", "danger")
+                app.logger.error(f"Recommendation error: {str(e)}")
     
     return render_template(
         "index.html",
@@ -33,22 +48,32 @@ def index():
         genres=genres,
         years=years,
         trailers=trailers,
-        history=[]  # Implement if needed
+        history=history
     )
 
 @app.route("/feedback", methods=["POST"])
 def feedback():
-    movie_title = request.form.get("movie_title")
-    feedback = request.form.get("feedback")
-    # Optional: store feedback
-    flash(f"Feedback recorded: {feedback} for {movie_title}", "success")
+    """Handle user feedback on recommendations"""
+    movie_title = request.form.get("movie_title", "Unknown")
+    feedback_type = request.form.get("feedback", "none")
+    
+    # Here you could log feedback to a file in the persistent cache:
+    feedback_log = Path(CACHE_DIR) / "feedback.log"
+    with open(feedback_log, "a") as f:
+        f.write(f"{movie_title},{feedback_type}\n")
+    
+    flash(f"Thanks for your feedback on '{movie_title}'!", "success")
     return redirect(url_for("index"))
 
 @app.route("/clear")
 def clear_history():
-    resp = redirect(url_for("index"))
-    resp.set_cookie("history", "", expires=0)
-    return resp
+    """Clear user history cookie"""
+    response = redirect(url_for("index"))
+    response.set_cookie("history", "", expires=0)
+    flash("History cleared!", "info")
+    return response
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    # Ensure cache directory exists before starting
+    Path(CACHE_DIR).mkdir(exist_ok=True)
+    app.run(host='0.0.0.0', port=int(os.getenv('PORT', 5000)))

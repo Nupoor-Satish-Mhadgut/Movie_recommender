@@ -7,8 +7,12 @@ from dotenv import load_dotenv
 import os
 import gc
 from functools import lru_cache
+from joblib import dump, load
 
 load_dotenv()
+
+from app import CACHE_DIR  # Import the shared cache directory
+cache_file = os.path.join(CACHE_DIR, 'similarity.joblib')
 
 # --- Memory Optimized Data Loading ---
 def load_and_filter_data():
@@ -92,19 +96,31 @@ def process_movies(movies):
 movies = process_movies(movies)
 
 # --- Optimized Similarity Calculation ---
+
+
 def compute_similarity():
-    count = CountVectorizer(stop_words='english', max_features=5000)  # Limit vocabulary
+    """Calculate or load cached similarity matrix"""
+    cache_file = 'similarity.joblib'
+    
+    if os.path.exists(cache_file):
+        print("Loading pre-computed similarity matrix...")
+        return load(cache_file)
+    
+    print("Computing similarity matrix...")
+    count = CountVectorizer(stop_words='english', max_features=5000)
     count_matrix = count.fit_transform(movies['soup'])
     
-    # Compute similarity in chunks if needed
+    # Compute in chunks for large datasets
     cosine_sim = cosine_similarity(count_matrix, count_matrix)
     
-    # Clean up
+    # Clean up and cache
     del count_matrix
+    dump(cosine_sim, cache_file)
     gc.collect()
     
     return cosine_sim
 
+# Initialize the matrix (will load or compute)
 cosine_sim = compute_similarity()
 
 # ... (keep all previous imports and data loading code) ...
