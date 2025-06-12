@@ -1,48 +1,46 @@
-import streamlit as st
-from recommender import recommend  # Your existing recommendation function
+from flask import Flask, render_template, request, redirect, url_for, flash
+from recommender import recommend  # Your recommendation logic
 
-# Page config
-st.set_page_config(
-    page_title="Movie Recommender",
-    page_icon="🎬",
-    layout="wide"
-)
+app = Flask(__name__)
+app.secret_key = '3f1e2b9d8c4f7a6e5b3d0c1f9a2e8b7'  # You can use an environment variable here for security
 
-# Custom CSS for dark/light mode (optional)
-st.markdown("""
-    <style>
-        .stApp { background-color: #f8f9fa; }
-        .dark-mode { background-color: #121212; color: white; }
-    </style>
-""", unsafe_allow_html=True)
-
-# Sidebar for theme toggle
-with st.sidebar:
-    st.title("Settings")
-    dark_mode = st.toggle("Dark Mode", False)
-
-# Main UI
-st.title("🎬 Nupoor's Movie Recommender")
-
-# Input movie
-movie = st.text_input("Enter a movie title:", placeholder="The Dark Knight")
-
-if st.button("Recommend"):
-    if not movie:
-        st.warning("Please enter a movie title!")
-    else:
-        with st.spinner("Finding recommendations..."):
-            recs, posters, genres, years, trailers = recommend(movie)
-
-        if not recs:
-            st.error("Movie not found. Try another title!")
+@app.route("/", methods=["GET", "POST"])
+def index():
+    recs, posters, genres, years, trailers = [], [], [], [], []
+    history = request.cookies.get("history")  # Optional history feature
+    
+    if request.method == "POST":
+        movie = request.form.get("movie")
+        if not movie:
+            flash("Please enter a movie title!", "warning")
         else:
-            st.success("Here are your recommendations:")
-            cols = st.columns(3)
-            for i in range(len(recs)):
-                with cols[i % 3]:
-                    st.image(posters[i], caption=recs[i], width=200)
-                    st.write(f"**Genre:** {genres[i]}")
-                    st.write(f"**Year:** {years[i]}")
-                    if trailers[i]:
-                        st.markdown(f"[▶ Watch Trailer]({trailers[i]})")
+            recs, posters, genres, years, trailers = recommend(movie)
+            if not recs:
+                flash("Movie not found. Try another title!", "danger")
+    
+    return render_template(
+        "index.html",
+        recs=recs,
+        posters=posters,
+        genres=genres,
+        years=years,
+        trailers=trailers,
+        history=[]  # Implement if needed
+    )
+
+@app.route("/feedback", methods=["POST"])
+def feedback():
+    movie_title = request.form.get("movie_title")
+    feedback = request.form.get("feedback")
+    # Optional: store feedback
+    flash(f"Feedback recorded: {feedback} for {movie_title}", "success")
+    return redirect(url_for("index"))
+
+@app.route("/clear")
+def clear_history():
+    resp = redirect(url_for("index"))
+    resp.set_cookie("history", "", expires=0)
+    return resp
+
+if __name__ == "__main__":
+    app.run(debug=True)
