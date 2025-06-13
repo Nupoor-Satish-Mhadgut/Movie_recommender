@@ -5,97 +5,82 @@ from PIL import Image
 
 # Page Configuration
 st.set_page_config(
-    page_title="Nupoor Mhadgut's Movie Recommendation",
+    page_title="Nupoor Mhadgut's Movie Recommendation System",
     page_icon="🎬",
     layout="wide"
 )
 
-# Load custom CSS
-def local_css(file_name):
-    try:
-        with open(file_name) as f:
-            st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-    except FileNotFoundError:
-        st.warning(f"CSS file {file_name} not found. Using default styles.")
+# Custom CSS
+st.markdown("""
+<style>
+    .movie-card {
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+    }
+    .movie-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    .trailer-button {
+        background-color: #0d6efd;
+        color: white;
+        padding: 8px 15px;
+        border-radius: 5px;
+        text-decoration: none;
+        display: inline-block;
+        margin: 10px 0;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    .trailer-button:hover {
+        background-color: #0b5ed7;
+        color: white;
+    }
+    .feedback-button {
+        margin: 5px;
+    }
+</style>
+""", unsafe_allow_html=True)
 
-local_css("style.css")
-
-# Header with Logo
-col1, col2 = st.columns([0.1, 0.9])
-with col1:
-    st.markdown("""
-    <div class="logo-badge">NM</div>
-    """, unsafe_allow_html=True)
-    
-with col2:
-    st.title("Nupoor Mhadgut's Movie Recommender")
-
-# Initialize session state for feedback if not exists
-if 'feedback' not in st.session_state:
-    st.session_state.feedback = {}
+# App Header
+st.title("🎬 Nupoor Mhadgut's Movie Recommendation System")
 
 # Recommendation Engine
-movie = st.text_input("Enter a movie you like:", placeholder="The Dark Knight", key="movie_input")
+movie = st.text_input("Enter a movie you like:", placeholder="Tom and Huck ")
 
-if st.button("Get Recommendations", key="recommend_button"):
+if st.button("Get Recommendations"):
     if not movie.strip():
         st.warning("Please enter a movie title!")
     else:
         with st.spinner("Finding the best recommendations..."):
-            start_time = time.time()
+            time.sleep(1)  # Simulate loading
             
-            try:
-                recs, posters, genres, years, trailers = recommend(movie)
+            # Get recommendations (name, poster, genre, year, trailer)
+            names, posters, genres, years, trailers = recommend(movie)
+            
+            if not names:
+                st.error("Movie not found. Try another title!")
+            else:
+                st.success("Here are your recommendations:")
                 
-                if not recs:
-                    st.error("Movie not found. Try another title!")
-                else:
-                    st.success(f"Found {len(recs)} recommendations in {time.time()-start_time:.2f} seconds")
-                    
-                    # Display recommendations in responsive grid
-                    cols = st.columns(3)
-                    for i, (rec, poster, genre, year, trailer) in enumerate(zip(recs, posters, genres, years, trailers)):
-                        with cols[i % 3]:
-                            with st.container():
-                                # Movie Poster
-                                poster_url = poster if poster else "https://via.placeholder.com/300x450?text=No+Poster"
-                                st.image(
-                                    poster_url,
-                                    width=200,
-                                    caption=rec,
-                                    use_column_width=True
-                                )
-                                
-                                # Movie Info
-                                st.markdown(f"### {rec}")
-                                st.caption(f"**{genre}** | {year}")
-                                
-                                # Trailer Button
-                                if trailer:
-                                    st.markdown(
-                                        f'<a href="{trailer}" target="_blank" class="trailer-button">▶ Watch Trailer</a>',
-                                        unsafe_allow_html=True
-                                    )
-                                
-                                # Feedback Buttons
-                                feedback_col1, feedback_col2 = st.columns(2)
-                                with feedback_col1:
-                                    if st.button(f"👍 Like", key=f"like_{i}"):
-                                        st.session_state.feedback[rec] = 'liked'
-                                        st.toast(f"You liked {rec}!")
-                                with feedback_col2:
-                                    if st.button(f"👎 Dislike", key=f"dislike_{i}"):
-                                        st.session_state.feedback[rec] = 'disliked'
-                                        st.toast(f"You disliked {rec}!")
-                                
-                                st.markdown("---")  # Separator
-            except Exception as e:
-                st.error(f"An error occurred: {str(e)}")
-                st.stop()
-
-# Optional: Display feedback history in sidebar
-with st.sidebar:
-    if st.session_state.feedback:
-        st.subheader("Your Feedback History")
-        for movie_title, feedback in st.session_state.feedback.items():
-            st.write(f"{'👍' if feedback == 'liked' else '👎'} {movie_title}")
+                # Display 3 recommendations per row
+                cols = st.columns(3)
+                for i in range(len(names)):
+                    with cols[i % 3]:
+                        # Movie Card
+                        st.markdown(f"""
+                        <div class="movie-card">
+                            <img src="{posters[i] if posters[i] else 'https://via.placeholder.com/300x450?text=No+Poster'}" 
+                                 style="width:100%; border-radius:8px; margin-bottom:10px;">
+                            <h4>{names[i]}</h4>
+                            <p><strong>{genres[i]}</strong> | {years[i]}</p>
+                            {f'<a href="{trailers[i]}" target="_blank" class="trailer-button">▶ Watch Trailer</a>' if trailers[i] else ''}
+                            <div style="display:flex; justify-content:center;">
+                                <button class="feedback-button" onclick="alert('You liked {names[i]}!')">👍 Like</button>
+                                <button class="feedback-button" onclick="alert('You disliked {names[i]}!')">👎 Dislike</button>
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
